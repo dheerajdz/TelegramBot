@@ -5,10 +5,10 @@ const cron = require('node-cron');
 const fs = require('fs');
 
 // Load environment variables
-const token = '7394590459:AAEwSwk80VHBcgxrYMU2O12w6DqyOYddVGg';
+const token = 'ADD BOT TOKEN';
 const chatIds = process.env.TELEGRAM_CHAT_ID ? process.env.TELEGRAM_CHAT_ID.split(',') : [];
 const adminIds = new Set(process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',').map(id => id.trim()) : []);
-const apiKey = 'avxi4QDSBLHie9DutCsD9dYH';
+const apiKey = process.env.apiKey;
 const bot = new TelegramBot(token, { polling: true });
 
 // Fetch the latest articles from the API
