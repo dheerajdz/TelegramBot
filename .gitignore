@@ -8,3 +8,8 @@ node_modules/
 
 #Dependencies
 package-lock.json
+
+
+#filecreated
+previousArticleIds.json
+sample.json
