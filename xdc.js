@@ -5,10 +5,10 @@ const cron = require('node-cron');
 const fs = require('fs');
 
 // Load environment variables
-const token = 'ADD BOT TOKEN';
+const token = process.env.TELEGRAM_BOT_TOKEN;
+console.log("Telegram Bot Token:", process.env.TELEGRAM_BOT_TOKEN);
 const chatIds = process.env.TELEGRAM_CHAT_ID ? process.env.TELEGRAM_CHAT_ID.split(',') : [];
 const adminIds = new Set(process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',').map(id => id.trim()) : []);
-const apiKey = process.env.apiKey;
 const bot = new TelegramBot(token, { polling: true });
 
 // Fetch the latest articles from the API
@@ -75,14 +75,14 @@ async function getArticleDetails(articleId) {
 }
 
 
-
+const allowedApiKeys = process.env.API_KEYS ? process.env.API_KEYS.split(',') : []; //added 
 
 async function unpublishArticle(articleId, msg) {
     try {
         const userId = msg.from.id.toString();
         const chatId = msg.message.chat.id.toString();
 
-        if (userId !== adminIds) {
+        if (!adminIds.has(userId)) {
             console.log(`Unauthorized user: ${userId} attempted to unpublish article ID: ${articleId}`);
             await bot.answerCallbackQuery(msg.id.toString(), {
                 text: 'You are not authorized to unpublish this article!',
@@ -115,14 +115,20 @@ async function unpublishArticle(articleId, msg) {
         console.log(`Sending API request to: ${apiUrl}`);
         console.log(`Payload:`, JSON.stringify(payload, null, 2));
 
-        if (!apiKey) {
-            throw new Error("Missing API Key. Please check your configuration.");
+        // Select a valid API key
+        const validApiKey = allowedApiKeys.length > 0 ? allowedApiKeys[0] : null; //added
+
+        console.log(validApiKey); //added
+
+        if (!validApiKey) {
+            console.error("No valid API key found.");
+            throw new Error("Missing or invalid API Key.");
         }
 
         // API request with PUT method
         const response = await axios.put(apiUrl, payload, {
             headers: {
-                'api-key': apiKey,
+                'api-key': validApiKey,
                 'accept': 'application/vnd.forem.api-v1+json',
                 'Content-Type': 'application/json',
             },
