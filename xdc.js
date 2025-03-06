@@ -1,15 +1,33 @@
+import axios from "axios";
 require('dotenv').config();
-const axios = require('axios');
+dotenv.config();
 const TelegramBot = require('node-telegram-bot-api');
 const cron = require('node-cron');
 const fs = require('fs');
 
+
+
+
 // Load environment variables
 const token = process.env.TELEGRAM_BOT_TOKEN;
-console.log("Telegram Bot Token:", process.env.TELEGRAM_BOT_TOKEN);
+console.log("Telegram Bot Token:", token);
+
 const chatIds = process.env.TELEGRAM_CHAT_ID ? process.env.TELEGRAM_CHAT_ID.split(',') : [];
 const adminIds = new Set(process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',').map(id => id.trim()) : []);
 const bot = new TelegramBot(token, { polling: true });
+
+// Dynamically assign API keys to admin IDs
+const adminApiKeys = {};
+const adminList = process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(",").map(id => id.trim()) : [];
+
+adminList.forEach((adminId, index) => {
+    const apiKeyEnvVar = `ADMIN_KEY_${index + 1}`; // Expected env variable: ADMIN_KEY_1, ADMIN_KEY_2, etc.
+    if (process.env[apiKeyEnvVar]) {
+        adminApiKeys[adminId] = process.env[apiKeyEnvVar];
+    }
+});
+
+console.log("Admin API Keys Mapping:", adminApiKeys);
 
 // Fetch the latest articles from the API
 async function fetchLatestArticles() {
@@ -75,7 +93,7 @@ async function getArticleDetails(articleId) {
 }
 
 
-const allowedApiKeys = process.env.API_KEYS ? process.env.API_KEYS.split(',') : []; //added 
+
 
 async function unpublishArticle(articleId, msg) {
     try {
@@ -116,7 +134,9 @@ async function unpublishArticle(articleId, msg) {
         console.log(`Payload:`, JSON.stringify(payload, null, 2));
 
         // Select a valid API key
-        const validApiKey = allowedApiKeys.length > 0 ? allowedApiKeys[0] : null; //added
+        const validApiKey = adminApiKeys[userId] || null; //added
+
+        console.log(`Using API Key: ${validApiKey ? 'Found' : 'Not Found'}`);
 
         console.log(validApiKey); //added
 
@@ -196,3 +216,5 @@ function startXDCNotify() {
 
 startXDCNotify();
 module.exports = startXDCNotify;
+
+
