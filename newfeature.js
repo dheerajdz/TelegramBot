@@ -122,7 +122,13 @@ async function unpublishArticle(articleId, msg) {
 
         if (response.status === 200) {
             console.log(`Article ID: ${articleId} successfully unpublished.`);
-            unpublishedArticles.add(articleId);
+
+            // Add article to unpublishedArticles.json with extra details
+            unpublishedArticles.add({
+                articleId,
+                username: articleDetails.username,
+                title: articleDetails.slug
+            });
             writeJSON('unpublishedArticles.json', Array.from(unpublishedArticles));
 
             // Remove the message from all chat groups
